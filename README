@@ -1,0 +1,32 @@
+									====================
+									CROSS WORD PUZZLE
+									====================
+
+Objectives and features
+-----------------------------
+1. The application combines the feature of the famous Crossword and the touch based Word puzzle. 
+2. On page load, a 10X10 grid of random letters will be displayed alongwith a list of clues. 
+3. The clues are the actual meaning of the words hidden in the puzzle. The words and meanings come from an external Dictionary file.
+3. The word may be arranged in the correct or opposite order vertically, horizontally or diagonally.
+4. Once the word is located, click and drag over the word. This will draw a rectangle with curved edges around the word. If the selection is correct, the corresponding clue will be striked off.
+
+Application Files
+---------------------
+The application uses the HTML5 canvas to generate the grid and draw the rectangular selector. A WCF service, invoked from the HTML file, is used to generate the puzzle and clue list.
+The application has three projects:
+1. Dictionary: This reads the external dictionary file and convert it to a Dictionary object that is later used to create the grid.
+2. RandomArrayProject: This selects a random list of words from the dictionary and arranges the same in the puzzle arbitrarily.
+3. WordPuzzleService: The WCF service used to get the actual puzzle grid and the clue list from the dictionary.
+
+Deployment Steps
+-----------------------
+1. First the Dictionary, RandomArrayProject and WordPuzzleService needs to be built in that order. 
+2. Create a web site in IIS and publish the service in the virtual directory created for the site.
+3. The following files should be added to the virtual directory as well:
+     a) index.html
+     b) Dictionary.xml
+     c) WordPuzzle.js
+     d) WordPuzzle.css
+     e) jQuery.js
+     f) kinetic.js
+4. Please make sure the service URL in the HTML corresponds to the actual URL of the service hosted locally.
