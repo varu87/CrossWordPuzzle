@@ -20,13 +20,14 @@ The application has three projects:
 
 Deployment Steps
 -----------------------
-1. First the Dictionary, RandomArrayProject and WordPuzzleService needs to be built in that order. 
-2. Create a web site in IIS and publish the service in the virtual directory created for the site.
-3. The following files should be added to the virtual directory as well:
+1. Build the Dictionary project and add the dictionary.dll reference to the RandomArrayProject. 
+2. Build the RandomArrayProject and add reference to the WordPuzzleService proect before building the same.
+3. Create a web site in IIS and publish the service in the virtual directory created for the site.
+4. The following files should be added to the virtual directory as well:
      a) index.html
      b) Dictionary.xml
      c) WordPuzzle.js
      d) WordPuzzle.css
      e) jQuery.js
      f) kinetic.js
-4. Please make sure the service URL in the HTML corresponds to the actual URL of the service hosted locally.
+5. Please make sure the service URL in the HTML corresponds to the actual URL of the service hosted locally.
