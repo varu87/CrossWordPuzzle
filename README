@@ -31,3 +31,4 @@ Deployment Steps
      e) jQuery.js
      f) kinetic.js
 5. Please make sure the service URL in the HTML corresponds to the actual URL of the service hosted locally.
+6. Update the "Dictionary" key in the web.config file of the WordPuzzleService project to the actual path where the dictionary file is deployed.

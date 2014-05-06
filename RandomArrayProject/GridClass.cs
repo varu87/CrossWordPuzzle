@@ -18,8 +18,10 @@ namespace RandomArrayProject
         public List<Words> WordList { get; set; }
         public List<Words> Dictionary { get; set; }
 
+
         public GridClass()
         {
+            Puzzle = new char[10, 10];
             InitializeGrid();
         }
 
@@ -28,8 +30,6 @@ namespace RandomArrayProject
         /// </summary>
         void InitializeGrid()
         {
-            Puzzle = new char[10, 10];
-
             for (int i = 0; i < 10; i++)
                 for (int j = 0; j < 10; j++)
                     Puzzle[i, j] = ' ';
@@ -41,16 +41,18 @@ namespace RandomArrayProject
         void InitializeWordList()
         {
             WordList = new List<Words>();
+            Words currentWord;
 
             if (Dictionary == null)
                 Dictionary = ReadDictionary();
 
             int index = r.Next(0, Dictionary.Count);
-
+            
             for (int i = 0; i < 10; i++)
             {
-                WordList.Add(Dictionary[(index) % 15]);
-                index = index + 2;
+                currentWord = new Words(Dictionary[index % 15].Word, Dictionary[index % 15].Meaning);
+                WordList.Add(currentWord);
+                index += 2;
             }
         }
 
@@ -99,14 +101,22 @@ namespace RandomArrayProject
         /// <summary>
         /// Checks if the list of words can be arranged in the puzzle
         /// </summary>
-        /// <returns>bool</returns>
-        public bool Arrange()
+        /// <returns>true if the words can be arranged and are evenly distributed in each direction</returns>
+        bool Arrange()
         {
             bool isFit = false;
             if (isArrangable(FindNextWord()))
             {
-                completeGrid();
-                isFit = true;
+                if (CheckDistribution())
+                {
+                    completeGrid();
+                    isFit = true;
+                }
+                else
+                {
+                    InitializeGrid();
+                    isFit = false;
+                }
             }
             
             return isFit;
@@ -117,7 +127,7 @@ namespace RandomArrayProject
         /// </summary>
         /// <param name="word"></param>
         /// <returns>bool</returns>
-        private bool isArrangable(Words word)
+        bool isArrangable(Words word)
         {
             if (word == null)
                 return true;
@@ -154,7 +164,7 @@ namespace RandomArrayProject
         /// Gets the next word to be arranged
         /// </summary>
         /// <returns>Words</returns>
-        private Words FindNextWord()
+        Words FindNextWord()
         {
             return WordList.Find(w => string.IsNullOrEmpty(w.Options));
         }
@@ -164,7 +174,7 @@ namespace RandomArrayProject
         /// </summary>
         /// <param name="currentWord"></param>
         /// <returns>string</returns>
-        private string FindAvaiableOptions(Words currentWord)
+        string FindAvaiableOptions(Words currentWord)
         {
             int randomDirection, wordCounter, xIndex, yIndex;
             bool isFit;
@@ -192,8 +202,8 @@ namespace RandomArrayProject
                             {
                                 if (Puzzle[xIndex, yIndex].Equals(' ') || Puzzle[xIndex, yIndex].Equals(currentWord.Word.Substring(wordCounter, 1)))
                                 {
-                                    xIndex = xIndex + lookupX[randomDirection];
-                                    yIndex = yIndex + lookupY[randomDirection];
+                                    xIndex += lookupX[randomDirection];
+                                    yIndex += lookupY[randomDirection];
                                 }
                                 else
                                 {
@@ -230,7 +240,7 @@ namespace RandomArrayProject
         /// <param name="word"></param>
         /// <param name="options"></param>
         /// <returns>Words</returns>
-        private Words Initialize(Words word, string options)
+        Words Initialize(Words word, string options)
         {
             int startIndex = -1;
             int direction = -1;
@@ -289,7 +299,7 @@ namespace RandomArrayProject
         /// </summary>
         /// <param name="word"></param>
         /// <returns>PuzzleState</returns>
-        private PuzzleState SaveState(Words word)
+        PuzzleState SaveState(Words word)
         {
             StringBuilder overlaps = new StringBuilder();
             int count = 0;
@@ -305,8 +315,8 @@ namespace RandomArrayProject
                     overlaps.Append(indexX).Append(indexY);
                 }
 
-                indexX = indexX + lookupX[word.Direction];
-                indexY = indexY + lookupY[word.Direction];
+                indexX += lookupX[word.Direction];
+                indexY += lookupY[word.Direction];
                 count++;
             }
 
@@ -317,7 +327,7 @@ namespace RandomArrayProject
         /// Reverts to the saved state
         /// </summary>
         /// <param name="currentState"></param>
-        private void RetractState(PuzzleState currentState)
+        void RetractState(PuzzleState currentState)
         {
             int indexX = currentState.StartIndex / 10;
             int indexY = currentState.StartIndex % 10;
@@ -329,10 +339,12 @@ namespace RandomArrayProject
             while (count < length)
             {
                 currentIndex = indexX.ToString() + indexY.ToString();
+
                 if (currentState.Overlaps.IndexOf(currentIndex) < 0)                
-                    Puzzle[indexX, indexY] = ' ';                
-                indexX = indexX + lookupX[direction];
-                indexY = indexY + lookupY[direction];
+                    Puzzle[indexX, indexY] = ' ';   
+             
+                indexX += lookupX[direction];
+                indexY += lookupY[direction];
                 count++;
             }
         }
@@ -341,7 +353,7 @@ namespace RandomArrayProject
         /// Adds the current word to the puzzle
         /// </summary>
         /// <param name="word"></param>
-        private void Add(Words word)
+        void Add(Words word)
         {
             int indexX = word.StartIndex / 10;
             int indexY = word.StartIndex % 10;
@@ -352,8 +364,8 @@ namespace RandomArrayProject
             while (count < currentWordLength)
             {
                 Puzzle[indexX, indexY] = word.Word.Substring(count, 1).ToCharArray()[0];
-                indexX = indexX + lookupX[direction];
-                indexY = indexY + lookupY[direction];
+                indexX += lookupX[direction];
+                indexY += lookupY[direction];
                 count++;
             }
         }
@@ -361,7 +373,7 @@ namespace RandomArrayProject
         /// <summary>
         /// Fills the puzzle with random letters
         /// </summary>
-        private void completeGrid()
+        void completeGrid()
         {
             int index, indexX, indexY, intAlpha, count;
 
@@ -381,6 +393,24 @@ namespace RandomArrayProject
                 intAlpha++;
                 count++;
             }
+        }
+
+        /// <summary>
+        /// Checks if there are atleast two words in each direction
+        /// </summary>
+        /// <returns>true if there are atleast two words in each direction</returns>
+        bool CheckDistribution()
+        {
+            if (WordList.Count(w => w.Direction == 0 || w.Direction == 1) < 2)
+                return false;
+
+            if (WordList.Count(w => w.Direction == 2 || w.Direction == 3) < 2)
+                return false;
+
+            if (WordList.Count(w => w.Direction == 4 || w.Direction == 5 || w.Direction == 6 || w.Direction == 7) < 2)
+                return false;
+
+            return true;
         }
     }
 

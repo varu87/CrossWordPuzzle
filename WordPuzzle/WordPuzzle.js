@@ -1,12 +1,10 @@
-var draggedRect, layer, stage, check, x1, y1, x2, y2, cHeight, cWidth;
+var curvedRect, layer, stage, check, x1, y1, x2, y2, cHeight, cWidth, startTime, endTime, solvedCount;
   
 $(document).ready(function(){
+  $('#solution').hide();
+  solvedCount = 0;
   cHeight = $('#container').height();
   cWidth = $('#container').width();
-  
-  $('#horizontal').hide();
-  $('#vertical').hide();
-  $('#diagonal').hide();
   
   layer = new Kinetic.Layer();
   stage = new Kinetic.Stage({
@@ -19,12 +17,12 @@ $(document).ready(function(){
   
   var isDragging = false;
   
-  CallService();
+  GeneratePuzzle();
   
   $(stage.getContent()).on('touchstart mousedown', function(event){
 	x1 = GetX();
 	y1 = GetY();
-	draggedRect = CurvedRectangle(x1, y1, 0, cWidth * 0.03, 0);
+	curvedRect = CurvedRectangle(x1, y1, 0, cWidth * 0.03, 0);
 	isDragging = true;
   });
 
@@ -32,7 +30,7 @@ $(document).ready(function(){
 	if(!isDragging)
 	  return;
 	else
-	  draggedRect.remove();
+	  curvedRect.remove();
 	
 	var w = stage.getPointerPosition().x - x1;
 	var h = stage.getPointerPosition().y - y1;
@@ -44,7 +42,7 @@ $(document).ready(function(){
 	else if(h < 0 && w >= 0)
 	  theta = 2 * Math.PI + theta;
 		
-	draggedRect = CurvedRectangle(x1, y1, Math.sqrt(w*w + h*h), cWidth * 0.03, theta);
+	curvedRect = CurvedRectangle(x1, y1, Math.sqrt(w*w + h*h), cWidth * 0.03, theta);
   });
 
   $(stage.getContent()).on('touchend mouseup', function(){
@@ -62,12 +60,19 @@ $(document).ready(function(){
 	  else if(h < 0 && w >= 0)
 	    theta = 2 * Math.PI + theta;
 		
-	  draggedRect.remove();
-	  draggedRect = CurvedRectangle(x1, y1, Math.sqrt(w*w + h*h), cWidth * 0.03, theta);
+	  curvedRect.remove();
+	  curvedRect = CurvedRectangle(x1, y1, Math.sqrt(w*w + h*h), cWidth * 0.03, theta);
 	  layer.draw();
+	  
+	  solvedCount++;
+	  
+	  if(solvedCount == 10){
+	    endTime = $.now();
+		alert('Puzzle solved in ' + ((endTime - startTime)/60000).toFixed(2) + ' minutes');
+	  }
 	}
 	else{
-	  draggedRect.remove();
+	  curvedRect.remove();
       layer.draw();
 	}
   });
@@ -75,13 +80,35 @@ $(document).ready(function(){
   $('#container').mouseout(function(){
     if(isDragging){
 	  isDragging = false;
-	  draggedRect.remove();
+	  curvedRect.remove();
 	  layer.draw();	  
 	}
   });
+  
+  $('#btnNewGame').on('click tap', NewGame);
+  
+  $('#btnClue').on('click tap', function(){
+    $('#solution').show();
+	$('#clue').hide();
+	  
+	setTimeout(function(){
+	  $('#solution').hide();
+	  $('#clue').show();
+	}, 1500);    
+  });
 });
 
-function CallService(){
+function NewGame(){  
+  solvedCount = 0;
+  layer.removeChildren();
+  $('#clue li').remove();
+  $('#clue').show();
+  $('#solution li').remove();
+  $('#solution').hide();
+  GeneratePuzzle();
+}
+
+function GeneratePuzzle(){
   $.ajax({
     type: 'GET',
 	url: 'http://localhost:3000/wordpuzzlegenerator.svc/GenerateGrid',
@@ -92,6 +119,7 @@ function CallService(){
 	  check = data.Check;
 	  DrawGrid(data.Grid);
 	  ShowHints(data.Meanings);
+	  startTime = $.now();
 	},
 	error: function(xhr){alert(xhr);}
   });
@@ -120,42 +148,39 @@ function DrawGrid(grid){
 }
 
 function ShowHints(hints){
-  var hasH = false;
-  var hasV = false;
-  var hasD = false;
-  var d, l, m;
+  var d, w, m;
 	  
   for(var i = 0; i < 10; i++){
 	d = hints[i].split('|')[0];
-	l = hints[i].split('|')[1].length;
+	w = hints[i].split('|')[1];
 	m = hints[i].split('|')[2];
 		
 	if(d == '0' || d == '1'){
-	  hasH = true;
-	  $('#horizontal').append(Meaning(i, l, m));
-	}
+	  $('#clHorizontal').append(Meaning(i, w.length, m));
+	  $('#snHorizontal').append(Word(i, w));
+	  }
 		
 	else if(d == '2' || d == '3'){
-	  hasV = true;
-	  $('#vertical').append(Meaning(i, l, m));
-	}
+	  $('#clVertical').append(Meaning(i, w.length, m));
+	  $('#snVertical').append(Word(i, w));
+	  }
 		
 	else{
-	  hasD = true;
-	  $('#diagonal').append(Meaning(i, l, m));
-	}
+	  $('#clDiagonal').append(Meaning(i, w.length, m));
+	  $('#snDiagonal').append(Word(i, w));
+	  }
 	
 	$('ul').css('font-size', cWidth * 0.06);
 	$('li').css('font-size', cWidth * 0.05);
   }
-	  
-  if(hasH) $('#horizontal').show();
-  if(hasV) $('#vertical').show();
-  if(hasD) $('#diagonal').show();
 }
 
 function Meaning(i, l, m){
-  return ('<li id=mn' + i + '>' + m + ' (' + l +')' + '</li>');
+  return ('<li id=cl' + i + '>' + m + ' (' + l +')' + '</li>');
+}
+
+function Word(i, w){
+  return ('<li id=sn' + i + '>' + w + '</li>');
 }
 
 function GetX(){
@@ -197,7 +222,8 @@ function CheckSolution(){
   for(var i = 0; i < check.length; i++){
     currentCell = check[i].split(',');
 	if((cell1 == currentCell[0] && cell2 == currentCell[1]) || (cell1 == currentCell[1] && cell2 == currentCell[0])){
-	  $('#mn' + i).addClass('correct');
+	  $('#cl' + i).addClass('correct');
+	  $('#sn' + i).addClass('correct');
 	  return false;
 	}
   }

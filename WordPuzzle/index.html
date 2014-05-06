@@ -3,16 +3,27 @@
   <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width" />
-	<title>Kinetic</title>
+	<title>Cross Word Puzzle</title>
 	<script src="jquery.js"></script>
 	<script src="kinetic.js"></script>
 	<script src="WordPuzzle.js"></script>
 	<link rel="stylesheet" type="text/css" href="WordPuzzle.css" />
   </head>
   <body>
-	    <div id="container"></div>
-	    <div id="clue"><ul id='horizontal'>Horizontal</ul>
-		<ul id='vertical'>Vertical</ul>
-		<ul id='diagonal'>Diagonal</ul></div>
+	<div id="controls">
+	  <input type="button" id="btnNewGame" value="New" />
+	  <input type="button" id="btnClue" value="Clue" />
+	</div>
+	<div id="container"></div>
+	<div id="clue">
+	  <ul id='clHorizontal'>Horizontal</ul>
+	  <ul id='clVertical'>Vertical</ul>
+	  <ul id='clDiagonal'>Diagonal</ul>
+	</div>
+	<div id="solution">
+	  <ul id='snHorizontal'>Horizontal</ul>
+	  <ul id='snVertical'>Vertical</ul>
+	  <ul id='snDiagonal'>Diagonal</ul>
+	</div>
   </body>
 </html>
