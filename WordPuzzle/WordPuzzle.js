@@ -1,8 +1,9 @@
-var curvedRect, layer, stage, check, x1, y1, x2, y2, cHeight, cWidth, startTime, endTime, solvedCount;
+var curvedRect, layer, stage, check, x1, y1, x2, y2, cHeight, cWidth, startTime, endTime, solvedCount, helpCount;
   
 $(document).ready(function(){
   $('#solution').hide();
   solvedCount = 0;
+  helpCount = 0;
   cHeight = $('#container').height();
   cWidth = $('#container').width();
   
@@ -68,7 +69,18 @@ $(document).ready(function(){
 	  
 	  if(solvedCount == 10){
 	    endTime = $.now();
-		alert('Puzzle solved in ' + ((endTime - startTime)/60000).toFixed(2) + ' minutes');
+		var successMessage = 'Puzzle solved in ' + ((endTime - startTime)/60000).toFixed(2) + ' minutes';
+		
+		if(helpCount > 0){
+		  successMessage += ' with help taken ' + helpCount;
+		  
+		  if(helpCount == 1)
+		    successMessage += ' time';
+		  else
+		    successMessage += ' times';
+		  }
+		  
+		alert(successMessage);
 	  }
 	}
 	else{
@@ -90,6 +102,11 @@ $(document).ready(function(){
   $('#btnClue').on('click tap', function(){
     $('#solution').show();
 	$('#clue').hide();
+	
+	if(helpCount === 'undefined')
+	  helpCount = 0;
+	  
+	helpCount++;
 	  
 	setTimeout(function(){
 	  $('#solution').hide();
@@ -100,6 +117,7 @@ $(document).ready(function(){
 
 function NewGame(){  
   solvedCount = 0;
+  helpCount = 0;
   layer.removeChildren();
   $('#clue li').remove();
   $('#clue').show();
