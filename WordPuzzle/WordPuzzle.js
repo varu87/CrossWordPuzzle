@@ -72,15 +72,17 @@ $(document).ready(function(){
 		var successMessage = 'Puzzle solved in ' + ((endTime - startTime)/60000).toFixed(2) + ' minutes';
 		
 		if(helpCount > 0){
-		  successMessage += ' with help taken ' + helpCount;
+		  successMessage += ' with help taken ';
 		  
 		  if(helpCount == 1)
-		    successMessage += ' time';
+		    successMessage += 'once';
 		  else
-		    successMessage += ' times';
+		    successMessage += helpCount + ' times';
 		  }
 		  
 		alert(successMessage);
+		
+		NewGame();
 	  }
 	}
 	else{
